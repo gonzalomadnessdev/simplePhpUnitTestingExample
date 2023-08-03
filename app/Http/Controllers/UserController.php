@@ -3,11 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\PasswordNotProvidedException;
+use App\Services\NotificationService;
 use App\User;
 use Exception;
 
 class UserController
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     public function login($request){
 
         if(empty($request->username)){
@@ -16,6 +24,12 @@ class UserController
 
         if(empty($request->password)){
             throw new PasswordNotProvidedException("No password provided");
+        }
+
+        $sent = $this->notificationService->send();
+
+        if(!$sent){
+            throw new Exception("Notification was not sent");
         }
 
         return new User();

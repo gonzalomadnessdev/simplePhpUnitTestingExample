@@ -4,20 +4,34 @@ namespace Tests\Unit;
 
 use App\Exceptions\PasswordNotProvidedException;
 use App\Http\Controllers\UserController;
+use App\Services\NotificationService;
 use App\User;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class SimpleTest extends TestCase
 {
+    private $notificationServiceMock;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->notificationServiceMock = $this->createMock(NotificationService::class);
+        $this->notificationServiceMock
+            ->method('send')
+            ->willReturn(true);
+    }
+
     /** @test */
-    public function espera_excepcion_al_pasar_password_vacia() : void{
+    public function espera_excepcion_al_pasar_password_vacia(): void
+    {
 
         //esperamos error PasswordNotProvidedException
         $this->expectException(PasswordNotProvidedException::class);
-        
+
         // dada una instancia de Usercontroller
-        $userController = new UserController();
+        $userController = new UserController($this->notificationServiceMock);
 
         // cuando llamamos a login y no pasamos password en el request
         $request = new stdClass();
@@ -27,10 +41,11 @@ class SimpleTest extends TestCase
     }
 
     /** @test */
-    public function obtiene_usuario_como_resultado() : void{
-        
+    public function obtiene_usuario_como_resultado(): void
+    {
+
         // dada una instancia de Usercontroller
-        $userController = new UserController();
+        $userController = new UserController($this->notificationServiceMock);
 
         // cuando pasamos un user y password
         $request = new stdClass();
@@ -39,7 +54,6 @@ class SimpleTest extends TestCase
 
         // entonces obtenemos una instancia de User
         $this->assertInstanceOf(User::class, $userController->login($request));
-
     }
 }
 
